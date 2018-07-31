@@ -1,0 +1,6 @@
+
+# exclude folders
+venv/
+train_data/
+.idea/
+makerfaire-1*
