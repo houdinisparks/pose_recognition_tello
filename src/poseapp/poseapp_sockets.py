@@ -142,10 +142,11 @@ class PoseAppWSockets():
         fontsize = 0.5
 
         try:
-            if all(elem in joint_list.keys() for elem in PoseGeom.LIST_OF_JOINTS):
-                image_h, image_w = frame.shape[:2]
 
-                # calculate angle between left shoulder and left elbow
+            image_h, image_w = frame.shape[:2]
+
+            # calculate angle between left shoulder and left elbow
+            if joint_list.keys() >= {PoseGeom.LEFT_SHOULDER, PoseGeom.LEFT_ELBOW}:
                 angle_2_3 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.LEFT_SHOULDER],
                                                         joint_list[PoseGeom.LEFT_ELBOW])
 
@@ -155,7 +156,8 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.RIGHT_SHOULDER].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
-                # calculate angle between left elbow and left elbow
+            # calculate angle between left elbow and left elbow
+            if joint_list.keys() >= {PoseGeom.LEFT_ELBOW, PoseGeom.LEFT_HAND}:
                 angle_3_4 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.LEFT_ELBOW],
                                                         joint_list[PoseGeom.LEFT_HAND])
 
@@ -165,6 +167,7 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.LEFT_ELBOW].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
+            if joint_list.keys() >= {PoseGeom.RIGHT_SHOULDER, PoseGeom.RIGHT_ELBOW}:
                 angle_5_6 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.RIGHT_SHOULDER],
                                                         joint_list[PoseGeom.RIGHT_ELBOW])
                 cv2.putText(frame, "angle: %0.2f" % angle_5_6,
@@ -173,6 +176,7 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.RIGHT_SHOULDER].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
+            if joint_list.keys() >= {PoseGeom.RIGHT_ELBOW, PoseGeom.RIGHT_HAND}:
                 angle_6_7 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.RIGHT_ELBOW],
                                                         joint_list[PoseGeom.RIGHT_HAND])
 
@@ -182,7 +186,8 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.RIGHT_ELBOW].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
-                # calculate the distance between the 2 hands
+            # calculate the distance between the 2 hands
+            if joint_list.keys() >= {PoseGeom.LEFT_HAND, PoseGeom.RIGHT_HAND}:
                 distance_4_7 = PoseGeom.distance_btw_2_points(joint_list[PoseGeom.LEFT_HAND],
                                                               joint_list[PoseGeom.RIGHT_HAND])
 
@@ -192,27 +197,27 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.RIGHT_HAND].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
-                if PoseGeom.is_takeoff(joint_list):
-                    pose = "takeoff"
+            if PoseGeom.is_takeoff(joint_list):
+                pose = "takeoff"
 
-                elif PoseGeom.is_land(joint_list):
-                    pose = "land"
+            elif PoseGeom.is_land(joint_list):
+                pose = "land"
 
-                elif PoseGeom.go_right(joint_list):
-                    pose = "right"
+            elif PoseGeom.go_right(joint_list):
+                pose = "right"
 
-                elif PoseGeom.go_left(joint_list):
-                    pose = "left"
+            elif PoseGeom.go_left(joint_list):
+                pose = "left"
 
-                elif PoseGeom.flip(joint_list):
-                    pose = "flip"
+            elif PoseGeom.flip(joint_list):
+                pose = "flip"
 
-                else:
-                    pose = "none"
+            else:
+                pose = "none"
 
-                cv2.putText(frame, "pose: {0}".format(pose),
-                            (int(round(image_w / 3)), int(round((image_h - 20)))), cv2.FONT_HERSHEY_SIMPLEX, 1.3,
-                            (0, 255, 0), 2)
+            cv2.putText(frame, "pose: {0}".format(pose),
+                        (int(round(image_w / 3)), int(round((image_h - 20)))), cv2.FONT_HERSHEY_SIMPLEX, 1.3,
+                        (0, 255, 0), 2)
 
         except Exception as e:
             logger.error(traceback.format_exc())
