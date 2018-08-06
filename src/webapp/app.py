@@ -22,7 +22,9 @@ processing_started = False
 logger = logging.getLogger(__name__)
 
 tello = Tello("192.168.10.2", 8888, imperial=False, command_timeout=0.3)
-poseapp = PoseAppWSockets(delay_time=150, tello=tello)
+poseapp = PoseAppWSockets(delay_time=160, tello=tello)
+
+
 # poseapp = PoseAppWKinesis(delay_time=500, tello=tello,produce_stream_name="poserec_raw",
 #                           consumer_stream_name="poserec_results")
 
@@ -86,7 +88,8 @@ def stop():
 def camera_feed():
     def gen_feed():
         fps_time = time.time()
-        while True and not poseapp.start_th_signal.wait(poseapp.delay_time/1000):
+        # while True and not poseapp.start_th_signal.wait(poseapp.delay_time / 1000):
+        while True and not poseapp.start_th_signal.is_set():
             frame = poseapp.frame_processed_queue.get(block=True)
             ret, jpeg = cv2.imencode('.jpg', frame)
             # logger.debug("video fps %s" % (1.0 / (time.time() - fps_time)))
@@ -107,7 +110,19 @@ thread_lock = threading.Lock()
 def background_thread():
     while True:
         socketio.sleep(3)
-        socketio.emit('tello_state', {"tello_state": tello.state}, broadcast=True)
+        resp = {}
+        if tello.state != "disconnected":
+            resp = {"tello_state": tello.state,
+                    "tello_battery": tello.battery,
+                    "tello_speed": tello.speed,
+                    "tello_flight_time": tello.flight_time}
+        else:
+            resp = {"tello_state": tello.state,
+                    "tello_battery": "disconnected",
+                    "tello_speed": "disconnected",
+                    "tello_flight_time": "disconnected"}
+
+        socketio.emit('tello_state', resp, broadcast=True)
 
 
 @socketio.on('connect')
@@ -127,6 +142,10 @@ def tello_connect():
     except Exception as e:
         return Response(str(e), status=500)
 
+@app.route("/change_reso/<int:value>", methods=["POST"])
+def change_reso(value=436):
+    poseapp.res_w = value
+    return "value changes to {}".format(value)
 
 # # when websocket receive named event, send info
 # @socketio.on("tello_connect_state")
@@ -135,7 +154,7 @@ def tello_connect():
 
 if __name__ == "__main__":
     # app.run(debug=True, port=5001)
-    socketio.run(app, debug=True, port=5001)
+    socketio.run(app, debug=True, port=5001, use_reloader=False)
     # def stream_log():
     #     while True:
     #         line = mystdout.readline()

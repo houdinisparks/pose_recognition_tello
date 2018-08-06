@@ -210,7 +210,7 @@ class PoseAppWKinesis():
                 elif PoseGeom.go_left(joint_list):
                     pose = "left"
 
-                elif PoseGeom.flip(joint_list):
+                elif PoseGeom.flip_forward(joint_list):
                     pose = "flip"
 
                 else:
@@ -237,7 +237,7 @@ class PoseAppWKinesis():
             elif pose == "left":
                 self.tello.move_left(0.2)
             elif pose == "flip":
-                self.tello.flip("f")
+                self.tello.flip_forward("f")
             else:
                 return "none"
 

@@ -9,21 +9,57 @@ $(document).ready(function() {
         self.tello_connection = ko.observable();
         self.tello_connection({
             status: "checking",
-            color: "badge orange"
+            color: "badge orange",
+            battery: "checking",
+            speed: "checking",
+            flight_time: "checking",
+            battery_color: "badge orange"
         })
 
 
-        self.update = function(tello_state){
-            if (tello_state === "disconnected"){
-                self.tello_connection({
-                    status: "disconnected",
-                    color: "badge red"
-                })
-            }else if (tello_state === "connected"){
-                self.tello_connection({
-                    status:"connected",
-                    color: " badge green"
-                })
+        self.update = function(tello_data){
+            tello_state = tello_data["tello_state"]
+            tello_battery = tello_data["tello_battery"]
+            tello_speed = tello_data["tello_speed"]
+            tello_flight_time = tello_data["tello_flight_time"]
+
+//            if (tello_state === "disconnected"){
+//                self.tello_connection({
+//                    status: self.check_status_color(tello_state),
+//                    color: "badge red",
+//                    battery: tello_battery,
+//                    battery_color:self.check_battery_color(tello_battery),
+//                    speed: tello_speed,
+//                    flight_time: tello_flight_time
+//                })
+//            }else {
+            self.tello_connection({
+                status: tello_state,
+                color: self.check_status_color(tello_state),
+                battery: tello_battery,
+                battery_color:self.check_battery_color(tello_battery),
+                speed: tello_speed,
+                flight_time: tello_flight_time
+            })
+
+        }
+
+        self.check_status_color = function(tello_status){
+            if (tello_status === "disconnected"){
+                return "badge red"
+            }else{
+                return "badge green"
+            }
+        }
+
+        self.check_battery_color = function(battery){
+            if (battery ==="disconnected"){
+                return "badge red"
+            }
+            else if (battery < 15){
+                return "badge orange"
+            }else  {
+                return "badge green"
             }
         }
     }
@@ -32,8 +68,8 @@ $(document).ready(function() {
     ko.applyBindings(telloModel, $("div#tello_connection")[0])
 
     socket.on("tello_state", function(json_data) {
-        console.log('received tello state ' + json_data["tello_state"]);
-        telloModel.update(json_data["tello_state"])
+        console.log('received tello data ' + json_data);
+        telloModel.update(json_data)
     });
 
 
@@ -179,6 +215,32 @@ $(document).ready(function() {
         pingmodel2.update(server_add_2)
 
     })
+
+    var originalVal;
+
+    $('#res_input').slider().on('slideStart', function(ev){
+        originalVal = $('#res_input').data('slider').getValue();
+    });
+
+    $('#res_input').slider().on('slideStop', function(ev){
+        var newVal = $('#res_input').data('slider').getValue();
+        if(originalVal != newVal) {
+            // ajax method to change reso of picture
+
+            $.ajax({
+                type: "POST",
+                url: "/change_reso/"+newVal,
+                success: function(result) {
+                    toastr["success"](result)
+                },
+                error: function(result) {
+                    toastr["error"](result.responseText)
+                }
+        });
+
+    }
+
+});
 
 
 });

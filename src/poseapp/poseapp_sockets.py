@@ -22,6 +22,8 @@ class PoseAppWSockets():
     def __init__(self, camera=0, resize='0x0', resize_out_ratio=4.0, model="mobilenet_thin", show_process=False,
                  remote_server='', delay_time=500, tello=None):
 
+        self.tello_command_interval = 1.5
+        self.last_epoch = time.time()
         self.delay_time = delay_time
         self.remote_server = remote_server
         self.show_process = show_process
@@ -39,6 +41,8 @@ class PoseAppWSockets():
         self.sent_fps = time.time()
         self.received_fps = time.time()
         self.fps_time = time.time()
+
+        self.res_w = 436
 
     def init_tello_connection(self):
         self.tello.init_connection()
@@ -111,6 +115,8 @@ class PoseAppWSockets():
             logger.error("FPS division error")
 
         self.received_fps = time.time()
+        frame = self.resize_image_aspect_ratio(frame, width=640, inter=cv2.INTER_LINEAR)
+
         self.frame_processed_queue.put(frame)
 
     def draw_humans(self, humans):
@@ -145,21 +151,21 @@ class PoseAppWSockets():
 
             image_h, image_w = frame.shape[:2]
 
-            if all(elem in joint_list.keys() for elem in PoseGeom.LIST_OF_JOINTS):
+            # if all(elem in joint_list.keys() for elem in PoseGeom.LIST_OF_JOINTS):
 
             # calculate angle between left shoulder and left elbow
-            # if joint_list.keys() >= {PoseGeom.LEFT_SHOULDER, PoseGeom.LEFT_ELBOW}:
+            if joint_list.keys() >= {PoseGeom.LEFT_SHOULDER, PoseGeom.LEFT_ELBOW}:
                 angle_2_3 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.LEFT_SHOULDER],
                                                         joint_list[PoseGeom.LEFT_ELBOW])
 
                 cv2.putText(frame, "angle: %0.2f" % angle_2_3,
                             PoseAppWSockets.translate_to_actual_dims(image_w, image_h,
                                                                      joint_list[PoseGeom.LEFT_SHOULDER].x - 0.27,
-                                                                     joint_list[PoseGeom.RIGHT_SHOULDER].y),
+                                                                     joint_list[PoseGeom.LEFT_SHOULDER].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
             # calculate angle between left elbow and left elbow
-            # if joint_list.keys() >= {PoseGeom.LEFT_ELBOW, PoseGeom.LEFT_HAND}:
+            if joint_list.keys() >= {PoseGeom.LEFT_ELBOW, PoseGeom.LEFT_HAND}:
                 angle_3_4 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.LEFT_ELBOW],
                                                         joint_list[PoseGeom.LEFT_HAND])
 
@@ -169,7 +175,7 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.LEFT_ELBOW].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
-            # if joint_list.keys() >= {PoseGeom.RIGHT_SHOULDER, PoseGeom.RIGHT_ELBOW}:
+            if joint_list.keys() >= {PoseGeom.RIGHT_SHOULDER, PoseGeom.RIGHT_ELBOW}:
                 angle_5_6 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.RIGHT_SHOULDER],
                                                         joint_list[PoseGeom.RIGHT_ELBOW])
                 cv2.putText(frame, "angle: %0.2f" % angle_5_6,
@@ -178,7 +184,7 @@ class PoseAppWSockets():
                                                                      joint_list[PoseGeom.RIGHT_SHOULDER].y),
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
-            # if joint_list.keys() >= {PoseGeom.RIGHT_ELBOW, PoseGeom.RIGHT_HAND}:
+            if joint_list.keys() >= {PoseGeom.RIGHT_ELBOW, PoseGeom.RIGHT_HAND}:
                 angle_6_7 = PoseGeom.angle_btw_2_points(joint_list[PoseGeom.RIGHT_ELBOW],
                                                         joint_list[PoseGeom.RIGHT_HAND])
 
@@ -189,7 +195,7 @@ class PoseAppWSockets():
                             cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0, 255, 0), 2)
 
             # calculate the distance between the 2 hands
-            # if joint_list.keys() >= {PoseGeom.LEFT_HAND, PoseGeom.RIGHT_HAND}:
+            if joint_list.keys() >= {PoseGeom.LEFT_HAND, PoseGeom.RIGHT_HAND}:
                 distance_4_7 = PoseGeom.distance_btw_2_points(joint_list[PoseGeom.LEFT_HAND],
                                                               joint_list[PoseGeom.RIGHT_HAND])
 
@@ -211,8 +217,14 @@ class PoseAppWSockets():
                 elif PoseGeom.go_left(joint_list):
                     pose = "left"
 
-                elif PoseGeom.flip(joint_list):
-                    pose = "flip"
+                elif PoseGeom.flip_forward(joint_list):
+                    pose = "flip_forward"
+
+                elif PoseGeom.flip_backward(joint_list):
+                    pose = "flip_backward"
+
+                elif PoseGeom.go_down(joint_list):
+                    pose = "down"
 
                 else:
                     pose = "none"
@@ -227,22 +239,73 @@ class PoseAppWSockets():
         return frame, pose
 
     def move_tello(self, pose):
-        try:
-            if pose == "takeoff":
-                self.tello.takeoff()
-            elif pose == "land":
-                self.tello.land()
-            elif pose == "right":
-                self.tello.move_right(0.2)
-            elif pose == "left":
-                self.tello.move_left(0.2)
-            elif pose == "flip":
-                self.tello.flip("f")
-            else:
-                return "none"
 
-        except Exception as e:
-            logger.error("tello exp {}".format(traceback.format_exc()))
+        # send tello commands only every 1s
+        if (time.time() - self.last_epoch) > self.tello_command_interval:
+            try:
+                if pose == "takeoff":
+                    self.tello.takeoff()
+                elif pose == "land":
+                    self.tello.land()
+                elif pose == "right":
+                    self.tello.move_right(0.4)
+                elif pose == "left":
+                    self.tello.move_left(0.4)
+                elif pose == "flip_forward":
+                    self.tello.flip("f")
+                elif pose == "flip_backward":
+                    self.tello.flip("b")
+                elif pose == "down":
+                    self.tello.move_down(0.4)
+
+            except Exception as e:
+                logger.error("tello exp {}".format(traceback.format_exc()))
+            finally:
+                logger.info("tello move with pose {}".format(pose))
+                self.last_epoch = time.time()
+        
+
+
+
+
+    def crop_frame(self, image, target_width, target_height, method=cv2.INTER_AREA):
+        image = image[:target_height, :target_width]
+        return image
+
+    def resize_image_aspect_ratio(self,image, width=None, height=None, inter=cv2.INTER_AREA):
+        # initialize the dimensions of the image to be resized and
+        # grab the image size
+        dim = None
+        (h, w) = image.shape[:2]
+
+        # if both the width and height are None, then return the
+        # original image
+        if width is None and height is None:
+            return image
+
+        # check to see if the width is None
+        if width is None:
+            # calculate the ratio of the height and construct the
+            # dimensions
+            r = height / float(h)
+            dim = (int(w * r), height)
+
+        # otherwise, the height is None
+        else:
+            # calculate the ratio of the width and construct the
+            # dimensions
+            r = width / float(w)
+            dim = (width, int(h * r))
+
+        # resize the image
+        resized = cv2.resize(image, dim, interpolation=inter)
+
+        # return the resized image
+        return resized
+
+    def rescale_image(self, image, fx, fy, method=cv2.INTER_AREA):
+        image = cv2.resize(image, fx=fx, fy=fy, interpolation=method)
+        return image
 
     def _th_start(self):
         """
@@ -289,6 +352,7 @@ class PoseAppWSockets():
             ####################################################
             ret_val, frame = cam.read()
             frame = cv2.flip(frame, 1)
+            frame = self.resize_image_aspect_ratio(frame, width=self.res_w)
 
             if self.remote_server != '':
                 self._frame_sent_queue.put(frame)

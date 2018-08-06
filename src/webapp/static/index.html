@@ -8,7 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.4/css/mdb.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="/static/index.css">
-
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/css/bootstrap-slider.min.css">
     <!-- JQuery -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
@@ -18,6 +19,8 @@
     <!-- Bootstrap core JavaScript -->
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.2.0/bootstrap-slider.min.js"></script>
+
     <!-- MDB core JavaScript -->
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.4/js/mdb.min.js"></script>
@@ -34,6 +37,15 @@
     <br>
     <div id="process_container">
     </div>
+    <div class="text-center"><input id="res_input" type="text"
+                                    data-provide="slider"
+                                    data-slider-ticks="[232, 436, 640]"
+                                    data-slider-ticks-labels='["232", "436", "640"]'
+                                    data-slider-min="232"
+                                    data-slider-max="640"
+                                    data-slider-step="204"
+                                    data-slider-value="436"
+                                    data-slider-tooltip="hide"/></div>
     <section id="process_start_form" class="form-simple text-center">
         <!-- Default form login -->
         <!-- Default input email -->
@@ -64,13 +76,29 @@
         </div>
         <br>
         <label for="tello_connection_butt" class="grey-text">Tello Connection</label>
-        <div class="form-inline mr-auto justify-content-center">
-            <button id="tello_connection_butt"
-                    class="btn btn-outline-primary btn-rounded btn-sm my-0"
-                    type="submit">
-                Connect
-            </button>
-            <div id="tello_connection" data-bind="with:tello_connection"><span data-bind="text:status, css:color"></span></div>
+        <div id="tello_connection">
+            <div class="form-inline mr-auto justify-content-center">
+                <button id="tello_connection_butt"
+                        class="btn btn-outline-primary btn-rounded btn-sm my-0"
+                        type="submit">
+                    Connect
+                </button>
+                <div data-bind="with:tello_connection"><span data-bind="text:status, css:color"></span></div>
+            </div>
+            <ul class="list-group" data-bind="with:tello_connection">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    battery
+                    <span data-bind="text:battery, css:battery_color"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    speed
+                    <span data-bind="text:speed, css:color"></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    flight time
+                    <span data-bind="text:flight_time, css:color"></span>
+                </li>
+            </ul>
         </div>
 
         <br>
