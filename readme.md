@@ -121,7 +121,7 @@ python -m src.webapp.app
 ![Web Page](./imgs/step_1.png)
 
 #### Demo of the poses recognized 
-![Poses](./imgs/poses.gif)
+![Poses](imgs/poses1.gif)
 
 6 poses: takeoff, land, left, right, flip_forward, flip_backward.
 
