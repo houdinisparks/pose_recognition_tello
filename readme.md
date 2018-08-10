@@ -18,17 +18,25 @@ the frames as they arrive after being processed in the server. As such, you will
 and environment files lying around in this repo, you don't have to pay attention to them. Just 
 follow the steps below and you should be on your way to moving the drones with your hands! :)
 
-## 1)  Run the web application
+## 1) Setup the environment
 ```powershell
-python src/webapp/app.py
+# create your venv folder
+python -m venv venv
+call venv/Scripts/activate.bat
+
+# install your requirements
+pip install -r requirements_gpu.txt
+
+# install the tf-openpose lib
+# ref: https://github.com/ildoonet/tf-pose-estimation#install-1
+git clone https://github.com/ildoonet/tf-pose-estimation.git
+cd tf-openpose
+python setup.py install
+cd tf_pose/pafprocess
+swig -python -c++ pafprocess.i && python3 setup.py build_ext --inplace
+
 ```
 
-```powershell
-('2018-08-01 12:33:33,305 - werkzeug - Thread-1 - INFO -  * Running on http://127.0.0.1:5001/ (Press CTRL+C to quit)
-```
-
-Webpage:
-![Web Page](./imgs/step_1.png)
 
 ## 2) Setup the AWS GPU EC2
 I used docker-machine to help me setup the aws gpu machine. I recommend using it, it is a very convenient tool for
@@ -80,13 +88,7 @@ docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi
 exit
 ```
 
-## 3) Setup the tello connection
-Turn on the tello and connect to the tello's wifi.
-Click on the "Connect to Tello" button on the webpage.
-
-![Web Page](./imgs/step_2.png)
-
-## 5) Run the image processing server on AWS
+## 3) Run the image processing server on AWS
 Open up powershell and enter the following command
 
 ```powershell
@@ -105,6 +107,31 @@ Enter 4.You should see the following output:
 ('2018-08-01 04:29:12,416 - __main__ - MainThread - INFO - Listening for connections...
 ```
 
-## 5) Libraries Use
+
+## 4)  Run the web application
+```powershell
+python -m src.webapp.app
+```
+```powershell
+# Output on console
+('2018-08-01 12:33:33,305 - werkzeug - Thread-1 - INFO -  * Running on http://127.0.0.1:5001/ (Press CTRL+C to quit)
+```
+
+Webpage:
+![Web Page](./imgs/step_1.png)
+
+Demo of the poses recognized:
+![Poses](./imgs/poses.gif)
+
+## 5) Setup the tello connection
+Turn on the tello and connect to the tello's wifi.
+Click on the "Connect to Tello" button on the webpage.
+
+![Web Page](./imgs/step_2.png)
+
+
+And you are done! :D
+
+## 6) Libraries Use
 tf-openpose
 opencv

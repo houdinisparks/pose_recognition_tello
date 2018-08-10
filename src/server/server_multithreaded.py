@@ -34,7 +34,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Globals
-n_workers = int(input("Number of workers for thread pool? "))
+while True:
+    try:
+        n_workers = int(input("Number of workers for thread pool? "))
+        break
+    except ValueError as e:
+        print("Please input a number.")
 
 futures_q = Queue(maxsize=n_workers)
 worker_mgr = None
@@ -60,7 +65,7 @@ connected = False
 
 
 def wait_for_connection():
-    global s, connected, conn , addr
+    global s, connected, conn, addr
     try:
         logger.info("Listening for connections...")
         s.listen(5)
@@ -75,8 +80,6 @@ def wait_for_connection():
         wait_for_connection()
 
 
-
-
 def _worker_th(frame):
     global estimator, w, h
     humans = estimator.inference(frame, resize_to_default=(w > 0 and h > 0), upsample_size=4.0)
@@ -86,7 +89,6 @@ def _worker_th(frame):
         humans = humans[:1]  # get the human with the highest score
         frame = TfPoseEstimator.draw_humans(frame, humans)
         frame, pose = PoseAppWSockets.identify_body_gestures(frame, humans[0])
-
 
     return frame, pose
 

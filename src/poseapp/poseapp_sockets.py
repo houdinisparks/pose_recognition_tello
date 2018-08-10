@@ -102,7 +102,8 @@ class PoseAppWSockets():
     def draw_frame(self, frame, pose):
 
         logger.debug("pose: {}".format(pose))
-        self.move_tello(pose)
+        if self.tello.state != "disconnected":
+            self.move_tello(pose)
 
         try:
             cv2.putText(frame,
