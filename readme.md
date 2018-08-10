@@ -117,10 +117,10 @@ python -m src.webapp.app
 ('2018-08-01 12:33:33,305 - werkzeug - Thread-1 - INFO -  * Running on http://127.0.0.1:5001/ (Press CTRL+C to quit)
 ```
 
-Webpage:
+Webpage:  
 ![Web Page](./imgs/step_1.png)
 
-Demo of the poses recognized:
+Demo of the poses recognized:  
 ![Poses](./imgs/poses.gif)
 
 ## 5) Setup the tello connection
