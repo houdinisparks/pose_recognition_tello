@@ -117,11 +117,13 @@ python -m src.webapp.app
 ('2018-08-01 12:33:33,305 - werkzeug - Thread-1 - INFO -  * Running on http://127.0.0.1:5001/ (Press CTRL+C to quit)
 ```
 
-Webpage:  
+#### Webpage   
 ![Web Page](./imgs/step_1.png)
 
-Demo of the poses recognized:  
+#### Demo of the poses recognized 
 ![Poses](./imgs/poses.gif)
+
+6 poses: takeoff, land, left, right, flip_forward, flip_backward.
 
 ## 5) Setup the tello connection
 Turn on the tello and connect to the tello's wifi.
