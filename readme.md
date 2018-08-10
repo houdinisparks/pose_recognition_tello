@@ -100,7 +100,7 @@ You should see see this prompt
 ```powershell
 Number of workers for thread pool?
 ```
-Enter 4.You should see the following output:
+Enter 2. You should see the following output:
 
 ```powershell
 ('2018-08-01 04:29:12,415 - __main__ - MainThread - INFO - Socket successfuly created and binded to 0.0.0.0:8089
