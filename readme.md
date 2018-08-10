@@ -7,8 +7,9 @@ A makerfaire 2018 project.
 **Prerequisites**
 - Docker
 - AWS EC2 GPU (G2/P2/P3)
-- Additional wireless network adaptor to connect to tello
+- Additional wireless network adaptor to connect to tello 
 - Camera ( pc webcam will do just fine )
+- DJI Tello 
 
 I initially developed this with a cpu as a target server  to process the images, but it 
 unsurprisingly turned out to be very slow. Also, midway developement I was thinking about 
@@ -126,7 +127,8 @@ python -m src.webapp.app
 6 poses: takeoff, land, left, right, flip_forward, flip_backward.
 
 ## 5) Setup the tello connection
-Turn on the tello and connect to the tello's wifi.
+Turn on the tello and connect to the tello's wifi (You need to attach another wifi adapter to connect 
+to a 2nd wifi network. It's cheap, I bought mine for SGD 6 from Lazada.) 
 Click on the "Connect to Tello" button on the webpage.
 
 ![Web Page](./imgs/step_2.png)
@@ -135,5 +137,5 @@ Click on the "Connect to Tello" button on the webpage.
 And you are done! :D
 
 ## 6) Libraries Use
-tf-openpose
+tf-openpose  
 opencv
