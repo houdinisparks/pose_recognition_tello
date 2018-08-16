@@ -33,14 +33,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Globals
-while True:
-    try:
-        n_workers = int(input("Number of workers for thread pool? "))
-        break
-    except ValueError as e:
-        print("Please input a number.")
+# # Globals
+# while True:
+#     try:
+#         n_workers = int(input("Number of workers for thread pool? "))
+#         break
+#     except ValueError as e:
+#         print("Please input a number.")
 
+n_workers = 2
+print("Using 2 workers for thread pool.")
 futures_q = Queue(maxsize=n_workers)
 worker_mgr = None
 th_signal = threading.Event()
@@ -136,17 +138,19 @@ def exit_connection():
     global futures_q, worker_mgr
     global connected, exc_info
 
+    # close process threads
+    if not th_signal.is_set():
+        conn.sendall(struct.pack("<L", len(b'close')) + b'close')
+        th_signal.set()
+        send_th.join()
+        logger.info("Sending thread closed.")
+
     try:
         conn.close()
         logger.info("Closing socket...")
     except:
         logger.error("Error closing socket {}".format(traceback.format_exc()))
 
-    # close process threads
-    if not th_signal.is_set():
-        th_signal.set()
-        send_th.join()
-        logger.info("Sending thread closed.")
 
     # wait and clear all pending futures
     logger.info("Shutting down thread pool executor...")
@@ -190,7 +194,6 @@ if __name__ == "__main__":
                     logger.error("Exception caught in send thread, breaking the connection..")
                     raise exc_info[1].with_traceback(exc_info[2])
 
-                # logger.error("1")
                 while len(data) < payload_size:
                     data += conn.recv(8196)
                     if not data:
@@ -205,18 +208,22 @@ if __name__ == "__main__":
                     data += conn.recv(8196)
                     if not data:
                         raise RuntimeError("no data received, closing connection, listening for new connection")
-                # logger.info("2")
 
-                frame_data = data[:msg_size]
+                msg_data = data[:msg_size]
                 data = data[msg_size:]
 
+                # check if message is for frame or to close
+                if msg_data == b'close':
+                    logger.info("received closed signal from client.")
+                    exit_connection()
+                    continue
+
                 # Convert the frame data back to its original form.
-                frame = pickle.loads(frame_data)
+                frame = pickle.loads(msg_data)
 
                 # Submit frame to worker thread for processing
                 future = worker_mgr.submit(_worker_th, frame)
                 futures_q.put(future)
-                # logger.info("3")
             except Exception as e:
                 logger.error("Exception caught! {}".format(traceback.format_exc()))
                 exit_connection()

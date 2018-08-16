@@ -101,6 +101,8 @@ class PoseAppWSockets():
 
     def draw_frame(self, frame, pose):
 
+        frame = self.resize_image_aspect_ratio(frame, width=640, inter=cv2.INTER_LINEAR)
+
         logger.debug("pose: {}".format(pose))
         if self.tello.state != "disconnected":
             self.move_tello(pose)
@@ -116,7 +118,6 @@ class PoseAppWSockets():
             logger.error("FPS division error")
 
         self.received_fps = time.time()
-        frame = self.resize_image_aspect_ratio(frame, width=640, inter=cv2.INTER_LINEAR)
 
         self.frame_processed_queue.put(frame)
 
@@ -231,7 +232,7 @@ class PoseAppWSockets():
                     pose = "none"
 
                 cv2.putText(frame, "pose: {0}".format(pose),
-                            (int(round(image_w / 3)), int(round((image_h - 20)))), cv2.FONT_HERSHEY_SIMPLEX, 1.3,
+                            (5, int(round((image_h - 20)))), cv2.FONT_HERSHEY_SIMPLEX, 0.75,
                             (0, 255, 0), 2)
 
         except Exception as e:
@@ -264,16 +265,12 @@ class PoseAppWSockets():
             finally:
                 logger.info("tello move with pose {}".format(pose))
                 self.last_epoch = time.time()
-        
-
-
-
 
     def crop_frame(self, image, target_width, target_height, method=cv2.INTER_AREA):
         image = image[:target_height, :target_width]
         return image
 
-    def resize_image_aspect_ratio(self,image, width=None, height=None, inter=cv2.INTER_AREA):
+    def resize_image_aspect_ratio(self, image, width=None, height=None, inter=cv2.INTER_AREA):
         # initialize the dimensions of the image to be resized and
         # grab the image size
         dim = None
@@ -398,6 +395,8 @@ class PoseAppWSockets():
             # time.sleep(self.delay_time / 1000)
 
         if self.remote_server != '':
+            logger.info ("Sending message for server to close...")
+            socket.send_message(b'close')
             logger.info("Cleaning up socket...")
             socket.close_socket()
             del socket

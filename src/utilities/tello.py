@@ -47,7 +47,7 @@ class Tello:
         self.response = None
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.local_address = (local_ip, local_port)
+        self.local_address = None
         self.tello_address = (tello_ip, tello_port)
 
         self.send_command_interval = 2
@@ -82,7 +82,12 @@ class Tello:
             # self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # self.socket.bind((self.local_address[0], self.local_address[1]))
 
-            # Async thread to receive responses from tello
+            self.socket.connect(self.tello_address)
+            local_address = self.socket.getsockname()
+            if "192.168.10" not in local_address[0]:
+                raise RuntimeError("Please check if you have connected the tello on wifi.")
+
+            self.local_address = local_address
             self.receive_thread = threading.Thread(target=self._receive_thread)
             self.receive_thread.daemon = True
             self.receive_thread.start()
@@ -148,7 +153,12 @@ class Tello:
         while True:
             try:
                 self.response, ip = self.socket.recvfrom(256)
-            except Exception:
+
+            except socket.timeout as e:
+                break
+
+            except Exception as e:
+                logger.error("Exception caught in {}".format(traceback.format_exc()))
                 break
 
     def _update_tello_details_thread(self):
@@ -157,19 +167,23 @@ class Tello:
         the properties for other classes to use.
         :return:
         """
-
+        try_again_count = 0
         while True:
             try:
                 self.battery = self.get_battery()
                 self.speed = self.get_speed()
                 self.flight_time = self.get_flight_time()
-                time.sleep(10)
+                time.sleep(5)
 
             except Exception:
-                self.state = "disconnected"
                 # self.socket.close()
-                logging.warning("Tello refuses to update tello details. Assumed disconnected.")
-                break
+                logging.warning("Tello refuses to update tello details. Trying again... {}".format(try_again_count))
+                try_again_count += 1
+                if try_again_count == 2:
+                    self.state = "disconnected"
+                    logging.warning(
+                        "Tello refuses to update tello details. Assume disconnected".format(try_again_count))
+                    break
                 # raise RuntimeError('Tello refuses to update tello details.')
 
     def flip(self, direction):

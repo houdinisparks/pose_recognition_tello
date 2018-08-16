@@ -26,7 +26,6 @@ idna==2.7
 itsdangerous==0.24
 Jinja2==2.10
 jmespath==0.9.3
-kinesis-python==0.1.7
 kiwisolver==1.0.1
 Markdown==2.6.11
 MarkupSafe==1.0

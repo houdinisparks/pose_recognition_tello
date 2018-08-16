@@ -3,6 +3,7 @@ import subprocess
 import threading
 import traceback
 from io import StringIO
+from queue import Empty
 
 import cv2
 import itertools
@@ -12,7 +13,7 @@ from flask_socketio import SocketIO, send, emit
 from jinja2 import Environment, FileSystemLoader
 import time
 # from src import tello, poseapp, PoseApp
-from src.poseapp.poseapp_kinesis import PoseAppWKinesis
+# from src.poseapp.poseapp_kinesis import PoseAppWKinesis
 from src.poseapp.poseapp_sockets import PoseAppWSockets
 from src.utilities.tello import Tello
 
@@ -90,12 +91,15 @@ def camera_feed():
         fps_time = time.time()
         # while True and not poseapp.start_th_signal.wait(poseapp.delay_time / 1000):
         while True and not poseapp.start_th_signal.is_set():
-            frame = poseapp.frame_processed_queue.get(block=True)
-            ret, jpeg = cv2.imencode('.jpg', frame)
-            # logger.debug("video fps %s" % (1.0 / (time.time() - fps_time)))
-            fps_time = time.time()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+            try:
+                frame = poseapp.frame_processed_queue.get(block=True, timeout=2)
+                ret, jpeg = cv2.imencode('.jpg', frame)
+                # logger.info("video fps %s" % (1.0 / (time.time() - fps_time)))
+                fps_time = time.time()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+            except Empty:
+                continue
 
         logger.info("Videostream closed.")
 
@@ -138,8 +142,9 @@ def test_connect():
 def tello_connect():
     try:
         poseapp.init_tello_connection()
-        return "Connected."
+        return "Connected. Local IP: {}".format(poseapp.tello.local_address)
     except Exception as e:
+        logger.error(traceback.format_exc())
         return Response(str(e), status=500)
 
 @app.route("/change_reso/<int:value>", methods=["POST"])

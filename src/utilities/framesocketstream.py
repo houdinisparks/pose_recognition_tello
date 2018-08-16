@@ -59,11 +59,11 @@ class FrameSocketStream():
 
                 logger.debug("Frame size received. Size: {}\n".format(len(data)))
                 packed_msg_size = data[:payload_size]
-                human_payload_size = struct.unpack("<L", packed_msg_size)[0]  # of bytes in frame.
+                msg_payload_size = struct.unpack("<L", packed_msg_size)[0]  # of bytes in frame.
 
                 # Get the human data
                 data = data[payload_size:]
-                while len(data) < human_payload_size:
+                while len(data) < msg_payload_size:
                     data += self.socket.recv(8192)
 
                 logger.debug("Frame received. Size: {}\n".format(len(data)))
@@ -77,11 +77,15 @@ class FrameSocketStream():
                 self.close_socket()
                 break
 
-            human_data = data[:human_payload_size]
-            data = data[human_payload_size:]
+            msg = data[:msg_payload_size]
+            # check is server is sending close signal
+            if msg == b'close':
+                logger.info("received closed from server.")
+                break
 
+            data = data[msg_payload_size:]
             # Convert the frame and human data back to its original form.
-            frame, pose = pickle.loads(human_data)
+            frame, pose = pickle.loads(msg)
 
             # Put humans in receive queue for other objects to access.
             # self._recv_queue.put(humans, block=True)
@@ -103,9 +107,26 @@ class FrameSocketStream():
         except socket.timeout:
             logger.info("Socket timeout while sending. Continuing...")
 
-        except Exception as e:
+        # except Exception as e:
+        #     print("Exception caught: {}".format(traceback.format_exc()))
+        #     self.close_socket()
+            # with self.sent_queue.mutex:
+            #     self.sent_queue.queue.clear()
+
+    def send_message(self, byte_message):
+        try:
+
+            self.socket.sendall(struct.pack("<L", len(byte_message)) + byte_message)
+
+        except ZeroDivisionError:
             print("Exception caught: {}".format(traceback.format_exc()))
-            self.close_socket()
+
+        except socket.timeout:
+            logger.info("Socket timeout while sending. Continuing...")
+
+        # except Exception as e:
+        #     print("Exception caught: {}".format(tracebaxck.format_exc()))
+        #     self.close_socket()
             # with self.sent_queue.mutex:
             #     self.sent_queue.queue.clear()
 
@@ -114,7 +135,7 @@ class FrameSocketStream():
         try:
             if not self.th_recv_signal.is_set():
                 self.th_recv_signal.set()
-                self.th_recv.join()  # block until recv thread succ terminates
+                self.th_recv.join(timeout=5)  # block until recv thread succ terminates
                 logger.info("Socket receive thread successfully stopped.")
         except RuntimeError as e:
             logger.error("Error joinging thread. Continue attempt to close socket.")
