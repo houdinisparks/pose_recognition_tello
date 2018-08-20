@@ -121,9 +121,8 @@ class PoseAppWSockets():
 
         self.frame_processed_queue.put(frame)
 
-    def draw_humans(self, humans):
+    def draw_humans(self, humans, frame):
 
-        frame = self._frame_sent_queue.get()
 
         # this portion does not cause the bottleneck
         frame = TfPoseEstimator.draw_humans(frame, humans)
@@ -228,6 +227,12 @@ class PoseAppWSockets():
                 elif PoseGeom.go_down(joint_list):
                     pose = "down"
 
+                elif PoseGeom.go_back(joint_list):
+                    pose = "back"
+
+                elif PoseGeom.go_forward(joint_list):
+                    pose = "forward"
+
                 else:
                     pose = "none"
 
@@ -259,6 +264,10 @@ class PoseAppWSockets():
                     self.tello.flip("b")
                 elif pose == "down":
                     self.tello.move_down(0.4)
+                elif pose == "back":
+                    self.tello.move_backward(0.4)
+                elif pose == "forward":
+                    self.tello.move_forward(0.4)
 
             except Exception as e:
                 logger.error("tello exp {}".format(traceback.format_exc()))
@@ -342,7 +351,7 @@ class PoseAppWSockets():
                                     tf_config=tf.ConfigProto(log_device_placement=True))
 
         t = threading.currentThread()
-
+        test_count = 0
         while True and not self.start_th_signal.wait(self.delay_time / 1000):
 
             ####################################################
@@ -353,8 +362,13 @@ class PoseAppWSockets():
             frame = self.resize_image_aspect_ratio(frame, width=self.res_w)
 
             if self.remote_server != '':
-                self._frame_sent_queue.put(frame)
-                socket.send(frame)
+                # self._frame_sent_queue.put(frame)
+                if test_count > 5:
+                    socket.send(frame)
+                else:
+                    socket.send(frame)
+                    time.sleep(0.5)
+                    test_count += 1
 
             else:
                 logger.debug('image process+')
@@ -388,15 +402,13 @@ class PoseAppWSockets():
                 logger.debug('finished+')
 
             # todo: this sents at a burst of 3 frames every self.delay_time
-            # logger.info("fps send %s" % (1.0 / (time.time() - self.sent_fps)))
+            logger.info("fps send %s" % (1.0 / (time.time() - self.sent_fps)))
             self.sent_fps = time.time()
             cv2.waitKey(self.delay_time)
             # cv2.waitKey(1)
             # time.sleep(self.delay_time / 1000)
 
         if self.remote_server != '':
-            logger.info ("Sending message for server to close...")
-            socket.send_message(b'close')
             logger.info("Cleaning up socket...")
             socket.close_socket()
             del socket

@@ -70,6 +70,14 @@ sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/
 sudo sh -c 'echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list'
 sudo apt-get update && sudo apt-get install -y --no-install-recommends linux-headers-generic dkms cuda-drivers
 
+# Create the docker group and add your user
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+# Log out and log back in so that your group membership is re-evaluated.
+exit
+docker-machine ssh <machine-name>
+
 # Add the nvidia-docker 2.0 package repositories
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | \
   sudo apt-key add -

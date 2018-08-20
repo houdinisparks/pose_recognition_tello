@@ -132,7 +132,27 @@ class PoseGeom:
                     -75 < cls.angle_btw_2_points(joints[cls.RIGHT_SHOULDER], joints[cls.RIGHT_ELBOW]) < 0 and
                     -180 < cls.angle_btw_2_points(joints[cls.RIGHT_ELBOW], joints[cls.RIGHT_HAND]) < -120):
 
-                if 0.02 < cls.distance_btw_2_points(joints[cls.LEFT_HAND], joints[cls.RIGHT_HAND]) < 0.2:
+                if 0.02 < cls.distance_btw_2_anpoints(joints[cls.LEFT_HAND], joints[cls.RIGHT_HAND]) < 0.2:
                     return True
+
+        return False
+
+    @classmethod
+    def go_back(cls, joints):
+        if joints.keys() >= {cls.LEFT_ELBOW, cls.LEFT_SHOULDER, cls.LEFT_HAND, cls.RIGHT_SHOULDER , cls.RIGHT_ELBOW}:
+            if (abs(cls.angle_btw_2_points(joints[cls.LEFT_SHOULDER], joints[cls.LEFT_ELBOW])) > 150 and
+                    145 > cls.angle_btw_2_points(joints[cls.LEFT_ELBOW], joints[cls.LEFT_HAND]) > 45 and
+                    cls.angle_btw_2_points(joints[cls.RIGHT_SHOULDER], joints[cls.RIGHT_ELBOW]) < -45):
+                return True
+
+        return False
+
+    @classmethod
+    def go_forward(cls, joints):
+        if joints.keys() >= {cls.RIGHT_SHOULDER, cls.RIGHT_ELBOW, cls.RIGHT_HAND, cls.LEFT_SHOULDER , cls.LEFT_ELBOW}:
+            if (abs(cls.angle_btw_2_points(joints[cls.RIGHT_SHOULDER], joints[cls.RIGHT_ELBOW])) < 45 and
+                    145 > cls.angle_btw_2_points(joints[cls.RIGHT_ELBOW], joints[cls.RIGHT_HAND]) and
+                    -135 < cls.angle_btw_2_points(joints[cls.LEFT_SHOULDER], joints[cls.LEFT_ELBOW]) < 0):
+                return True
 
         return False

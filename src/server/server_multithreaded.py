@@ -72,7 +72,7 @@ def wait_for_connection():
         logger.info("Listening for connections...")
         s.listen(5)
         conn, addr = s.accept()
-        conn.settimeout(5)  # raise exception if nothing is received in 4 secs.
+        conn.settimeout(30)  # raise exception if nothing is received in 30 secs.
         logger.info("Connected to {}\nStart video processing.".format(addr))
         connected = True
 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     s.bind((HOST, PORT))
     logger.info("Socket successfuly created and binded to {0}:{1}".format(HOST, PORT))
 
-    fps_time = 0
+    fps_time = time.time()
     payload_size = struct.calcsize("<L")
 
     while True:
@@ -211,6 +211,9 @@ if __name__ == "__main__":
 
                 msg_data = data[:msg_size]
                 data = data[msg_size:]
+
+                # print("recv fps {0:.2f} q size {1}".format((1.0 / (time.time() - fps_time)), futures_q.qsize()))
+                fps_time = time.time()
 
                 # check if message is for frame or to close
                 if msg_data == b'close':

@@ -39,9 +39,9 @@
     </div>
     <div class="text-center"><input id="res_input" type="text"
                                     data-provide="slider"
-                                    data-slider-ticks="[232, 436, 640]"
-                                    data-slider-ticks-labels='["232", "436", "640"]'
-                                    data-slider-min="232"
+                                    data-slider-ticks="[28,232, 436, 640]"
+                                    data-slider-ticks-labels='["28","232", "436", "640"]'
+                                    data-slider-min="28"
                                     data-slider-max="640"
                                     data-slider-step="204"
                                     data-slider-value="436"
@@ -50,10 +50,20 @@
         <!-- Default form login -->
         <!-- Default input email -->
         <label for="server_add" class="grey-text">Server Address 1</label>
-        <div id="server1" data-bind="with:server" class="form-inline mr-auto justify-content-center"><input type="text"
-                                                                                                            id="server_add"
-                                                                                                            name="server_add"
-                                                                                                            class="form-control">
+        <div id="server1" data-bind="with:server" class="form-inline mr-auto justify-content-center">
+            <!--<input type="text"-->
+            <!--id="server_add"-->
+            <select required id="server_add">
+                <option value="" disabled selected>Choose your server</option>
+                <option value="1">ip_address_1</option>
+                <option value="2">ip_address_2</option>
+            </select>
+            <!--name="server_add"-->
+            <!--class="form-control">-->
+            <!--<select class="mdb-select">-->
+            <!--<option value="1"></option>-->
+            <!--<option value="2">18.136.41.236:8089</option>-->
+            <!--</select>-->
             <button id="server_add_butt" class="ping_button btn btn-outline-primary btn-rounded btn-sm my-0"
                     type="submit">
                 Check Status
@@ -63,17 +73,22 @@
         </div>
 
         <br>
-        <label for="server_add2" class="grey-text">Server Address 2</label>
-        <div id="server2" data-bind="with:server" class="form-inline mr-auto justify-content-center"><input type="text"
-                                                                                                            id="server_add2"
-                                                                                                            name="server_add2"
-                                                                                                            class="form-control">
-            <button id="server_add2_butt" class="ping_button btn btn-outline-primary btn-rounded btn-sm my-0"
-                    type="submit">
-                Check Status
-            </button>
-            <span data-bind="text:status, css:color"></span>
-        </div>
+        <!--<label for="server_add2" class="grey-text">Server Address 2</label>-->
+        <!--<div id="server2" data-bind="with:server" class="form-inline mr-auto justify-content-center">-->
+        <!--&lt;!&ndash;<input type="text"&ndash;&gt;-->
+        <!--&lt;!&ndash;id="server_add2"&ndash;&gt;-->
+        <!--&lt;!&ndash;name="server_add2"&ndash;&gt;-->
+        <!--&lt;!&ndash;class="form-control">&ndash;&gt;-->
+        <!--<select class="mdb-select">-->
+        <!--<option value="1"></option>-->
+        <!--<option value="2">18.136.41.236:8089</option>-->
+        <!--</select>-->
+        <!--<button id="server_add2_butt" class="ping_button btn btn-outline-primary btn-rounded btn-sm my-0"-->
+        <!--type="submit">-->
+        <!--Check Status-->
+        <!--</button>-->
+        <!--<span data-bind="text:status, css:color"></span>-->
+        <!--</div>   -->
         <br>
         <label for="tello_connection_butt" class="grey-text">Tello Connection</label>
         <div id="tello_connection">
