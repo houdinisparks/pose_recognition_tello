@@ -102,14 +102,15 @@ Open up powershell and enter the following command
 
 ```powershell
 cd <path to project directory>
-./docker_run.ps1
+docker-machine start <machine-name>
+docker-machine env <machine-name> | Invoke-Expression
+
+# stop all running containers just in case one of them is already using pot 8089
+docker stop $(docker ps -aq)
+docker run --runtime=nvidia -it --rm -p 8089:8089 houdinisparks/pose_recogniser:mf-gpu-30stimeout
 ```
 
-You should see see this prompt
-```powershell
-Number of workers for thread pool?
-```
-Enter 2. You should see the following output:
+You should see the following output:
 
 ```powershell
 ('2018-08-01 04:29:12,415 - __main__ - MainThread - INFO - Socket successfuly created and binded to 0.0.0.0:8089
@@ -118,9 +119,13 @@ Enter 2. You should see the following output:
 
 
 ## 4)  Run the web application
+Open up another console on your pc.
+
 ```powershell
+cd <path to project directory>
 python -m src.webapp.app
 ```
+
 ```powershell
 # Output on console
 ('2018-08-01 12:33:33,305 - werkzeug - Thread-1 - INFO -  * Running on http://127.0.0.1:5001/ (Press CTRL+C to quit)
@@ -132,7 +137,9 @@ python -m src.webapp.app
 #### Demo of the poses recognized 
 ![Poses](imgs/poses1.gif)
 
-6 poses: takeoff, land, left, right, flip_forward, flip_backward.
+6 poses: takeoff, land, left, right, flip_forward, flip_backward.  
+**EDIT**
+2 more poses added: back and front. |_ (left shoulder) for back, and _| (right shoulder) for front
 
 ## 5) Setup the tello connection
 Turn on the tello and connect to the tello's wifi (You need to attach another wifi adapter to connect 
@@ -141,6 +148,8 @@ Click on the "Connect to Tello" button on the webpage.
 
 ![Web Page](./imgs/step_2.png)
 
+**EDIT**
+You might need to click the connect button a few times before its connected.
 
 And you are done! :D
 

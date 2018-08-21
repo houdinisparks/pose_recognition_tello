@@ -1,6 +1,8 @@
 
 tf-openpose/
 pose_recognizer.zip
+*.ps1
+*.bat
 
 # Created by https://www.gitignore.io/api/python,pycharm,virtualenv
 
