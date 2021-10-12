@@ -34,7 +34,7 @@ mock==2.0.0
 networkx==2.1
 numpy==1.14.5
 offspring==0.1.1
-opencv-python==3.4.1.15
+opencv-python==4.2.0.32
 pbr==4.2.0
 Pillow==5.2.0
 protobuf==3.6.0
